@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { supabase } from '../../lib/supabase';
 import { Loader2, AlertCircle, MessageCircle, Calendar, User, Phone } from 'lucide-react';
 import { useOrders } from '../../hooks/useOrders';
 import { Order } from '../../types';
@@ -14,6 +15,38 @@ export function OrdersList() {
 
   useEffect(() => {
     fetchOrders();
+
+    // Suscripción en tiempo real a cambios en la tabla orders
+    const channel = supabase
+      .channel('orders-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        (payload: any) => {
+          // Actualizar la lista en memoria según el evento
+          setOrders((prev) => {
+            const newRow = payload.new as Order | null;
+            const oldRow = payload.old as Order | null;
+            switch (payload.eventType) {
+              case 'INSERT':
+                return newRow ? [newRow, ...prev] : prev;
+              case 'UPDATE':
+                return newRow
+                  ? prev.map((o) => (o.id === newRow.id ? { ...o, ...newRow } : o))
+                  : prev;
+              case 'DELETE':
+                return oldRow ? prev.filter((o) => o.id !== oldRow.id) : prev;
+              default:
+                return prev;
+            }
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchOrders = async () => {
@@ -30,11 +63,20 @@ export function OrdersList() {
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
     try {
-      // Lógica para actualizar el estado de la orden en la base de datos
-      const updatedOrders = orders.map(order =>
-        order.id === orderId ? { ...order, status: newStatus } : order
+      // Persistir el cambio en la base de datos
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: newStatus })
+        .eq('id', orderId);
+
+      if (error) throw error;
+
+      // Optimistic UI (la suscripción también actualizará el estado)
+      setOrders((prev) =>
+        prev.map((order) =>
+          order.id === orderId ? { ...order, status: newStatus } : order
+        )
       );
-      setOrders(updatedOrders);
     } catch (error) {
       console.error('Error al cambiar el estado de la orden:', error);
       alert('No se pudo cambiar el estado de la orden.');
