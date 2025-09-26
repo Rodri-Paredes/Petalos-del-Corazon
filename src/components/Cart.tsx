@@ -66,6 +66,13 @@ export function Cart({ isOpen, onClose }: CartProps) {
     }
   };
 
+  const handleContact = () => {
+    const message = `¡Hola! Estoy interesado en realizar un pedido.`;
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -191,13 +198,22 @@ export function Cart({ isOpen, onClose }: CartProps) {
                   </div>
                 </div>
               ) : (
-                <button
-                  onClick={() => setShowCheckout(true)}
-                  className="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg flex items-center justify-center space-x-2 transition-colors font-medium"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  <span>Comprar por WhatsApp</span>
-                </button>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => setShowCheckout(true)}
+                    className="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg flex items-center justify-center space-x-2 transition-colors font-medium"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    <span>Comprar por WhatsApp</span>
+                  </button>
+                  <button
+                    onClick={handleContact}
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg flex items-center justify-center space-x-2 transition-colors font-medium"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    <span>Contactar por WhatsApp</span>
+                  </button>
+                </div>
               )}
             </div>
           )}
