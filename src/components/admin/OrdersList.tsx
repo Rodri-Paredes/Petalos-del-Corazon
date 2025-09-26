@@ -28,6 +28,19 @@ export function OrdersList() {
     }
   };
 
+  const handleStatusChange = async (orderId: string, newStatus: string) => {
+    try {
+      // Lógica para actualizar el estado de la orden en la base de datos
+      const updatedOrders = orders.map(order =>
+        order.id === orderId ? { ...order, status: newStatus } : order
+      );
+      setOrders(updatedOrders);
+    } catch (error) {
+      console.error('Error al cambiar el estado de la orden:', error);
+      alert('No se pudo cambiar el estado de la orden.');
+    }
+  };
+
   const filteredOrders = orders.filter(order => 
     order.customer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     order.order_number.toString().includes(searchQuery)
@@ -154,6 +167,23 @@ export function OrdersList() {
                       ))}
                     </div>
                   </div>
+                </div>
+
+                {/* Cambiar estado de la orden */}
+                <div className="mt-4">
+                  <label htmlFor="status" className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                    Cambiar estado:
+                  </label>
+                  <select
+                    id="status"
+                    value={order.status}
+                    onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                    className="px-2 py-1 sm:px-3 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-xs sm:text-sm"
+                  >
+                    <option value="pending">Pendiente</option>
+                    <option value="completed">Completada</option>
+                    <option value="cancelled">Cancelada</option>
+                  </select>
                 </div>
               </div>
             </div>
