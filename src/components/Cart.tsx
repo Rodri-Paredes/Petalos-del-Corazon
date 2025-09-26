@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, Plus, Minus, ShoppingBag, MessageCircle } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useOrders } from '../hooks/useOrders';
-import { generateWhatsAppMessage, sendWhatsAppMessage } from '../utils/whatsapp';
+import { generateWhatsAppMessage } from '../utils/whatsapp';
 
 interface CartProps {
   isOpen: boolean;
@@ -50,7 +50,7 @@ export function Cart({ isOpen, onClose }: CartProps) {
       );
 
       // Enviar por WhatsApp
-      sendWhatsAppMessage(WHATSAPP_NUMBER, message);
+      window.open(`https://api.whatsapp.com/send?phone=${encodeURIComponent(WHATSAPP_NUMBER)}&text=${encodeURIComponent(message)}`, '_blank');
 
       // Limpiar carrito y cerrar
       clearCart();
